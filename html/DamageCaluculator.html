@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" href="../css/html5reset-1.6.1.css" type="text/css">
+	<link rel="stylesheet" href="../css/dcalc.css" type="text/css">
+	<script type="text/javascript" src="../js/dcalc.js"></script>
+	<meta name=description content="艦これダメージ計算器">
+	<meta http-equiv="content-type" content="text/html;charset=UTF-8">
+	<title>艦これダメージ計算器</title>
+</head>
+<body>
+	<h1>艦これダメージ計算器</h1>
+	<div id="container">
+		<form name="dCalc">
+			<!-- キャップ前補正+残弾補正 -->
+			<div id="battleField">
+				<table>
+					<tbody>
+						<tr>
+							<td><label for="fFormation">攻撃側陣形</label></td>
+							<td><select id="fFormation" name="formation"></select></td>
+							<td><label for="fEngage">交戦形態</label></td>
+							<td><select id="fEngage" name="engage"></select></td>
+							<td><label for="fAttackerDamage">攻撃者損傷状態</label></td>
+							<td><select id="fAttackerDamage" name="attackerDamage"></select></td>
+							<td><label for="fNightAttack">夜戦特殊攻撃</label></td>
+							<td><select id="fNightAttack" name="nightAttack"></select></td>
+						</tr>
+						<tr>
+							<td><label>クリティカル</label></td>
+							<td><select name="critical"></select></td>
+							<td><label>過去戦闘回数</label></td>
+							<td><input type="number" name="engagedTimes" min="0"></td>
+							<td><label>過去夜戦回数</label></td>
+							<td><input type="number" name="nightBattleTimes" min="0"></td>
+							<td><label>攻撃方法</label></td>
+							<td><select name="method"></select></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			
+			<div id="box">
+			<!-- 攻撃者 -->
+			<div id="attacker">
+				<p>艦娘ステータス</p>
+				<table>
+					<thead>
+						<tr><th>火力</th><th>雷装</th><th>対潜</th></tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><input type="number" name="firepower" min="0"></td>
+							<td><input type="number" name="topedo" min="0"></td>
+							<td><input type="number" name="antiSubmarine" min="0"></td>
+						</tr>
+					</tbody>
+				</table>
+				
+				<p>装備ステータス</p>
+				<table>
+					<thead>
+					<tr><th>スロット</th><th>火力</th><th>雷装</th><th>対潜</th><th>爆装</th><th>搭載数</th><th>種別</th></tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>スロット1</td>
+							<td><input type="number" name="eFirepower0" min="0"></td>
+							<td><input type="number" name="eTopedo0" min="0"></td>
+							<td><input type="number" name="eAntiSubmarine0" min="0"></td>
+							<td><input type="number" name="eBomb0" min="0"></td>
+							<td><input type="number" name="eMounted0" min="0"></td>
+							<td><select name="eType0"></select>
+							</td>
+						</tr>
+						<tr>
+							<td>スロット2</td>
+							<td><input type="number" name="eFirepower1" min="0"></td>
+							<td><input type="number" name="eTopedo1" min="0"></td>
+							<td><input type="number" name="eAntiSubmarine1" min="0"></td>
+							<td><input type="number" name="eBomb1" min="0"></td>
+							<td><input type="number" name="eMounted1" min="0"></td>
+							<td><select name="eType1"></select>
+							</td>
+						</tr>
+						<tr>
+							<td>スロット3</td>
+							<td><input type="number" name="eFirepower2" min="0"></td>
+							<td><input type="number" name="eTopedo2" min="0"></td>
+							<td><input type="number" name="eAntiSubmarine2" min="0"></td>
+							<td><input type="number" name="eBomb2" min="0"></td>
+							<td><input type="number" name="eMounted2" min="0"></td>
+							<td><select name="eType2"></select>
+							</td>
+						</tr>
+						<tr>
+							<td>スロット4</td>
+							<td><input type="number" name="eFirepower3" min="0"></td>
+							<td><input type="number" name="eTopedo3" min="0"></td>
+							<td><input type="number" name="eAntiSubmarine3" min="0"></td>
+							<td><input type="number" name="eBomb3" min="0"></td>
+							<td><input type="number" name="eMounted3" min="0"></td>
+							<td><select name="eType3"></select>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<p>装備補正込み艦娘ステータス</p>
+				<table>
+					<thead>
+						<tr><th>火力</th><th>雷装</th><th>対潜</th><th>爆装</th>
+					</thead>
+					<tbody>
+						<tr>
+							<td><output name="cFirepower"></output></td>
+							<td><output name="cTopedo"></output></td>
+							<td><output name="cAntiSubmarine"></output></td>
+							<td><output name="cBomb"></output></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			
+			<!-- 被害者 -->
+			<div id="victim">
+			<p>敵艦ステータス</p>
+			<table>
+				<thead>
+					<tr><th>耐久</th><th>装甲</th></tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td><input type="number" name="hp" min="0"></td>
+						<td><input type="number" name="armor" min="0"></td>
+					</tr>
+				</tbody>
+			</table>
+			<p>装備ステータス</p>
+			<table>
+				<thead>
+					<tr><th>スロット</th><th>装甲</th></tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>スロット1</td>
+						<td><input type="number" name="eArmor0" min="0"></td>
+					</tr>
+					<tr>
+						<td>スロット2</td>
+						<td><input type="number" name="eArmor1" min="0"></td>
+					</tr>
+					<tr>
+						<td>スロット3</td>
+						<td><input type="number" name="eArmor2" min="0"></td>
+					</tr>
+					<tr>
+						<td>スロット4</td>
+						<td><input type="number" name="eArmor3" min="0"></td>
+					</tr>
+				</tbody>
+			</table>
+			<p>装備補正込み敵艦ステータス</p>
+			<table>
+				<thead>
+					<tr><th>耐久</th><th>装甲</th></tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td><output name="cHp"></td>
+						<td><output name="cArmor"></td>
+					</tr>
+				</tbody>
+			</table>
+			</div>
+			
+			<!-- 結果 -->
+			<div id="result">
+				<p>結果</p>
+				<output name="calcResult"></output>
+				<!-- 航空戦とそれ以外で動的に出力を変えるしかない？ -->
+			</div>
+			</div><!-- box -->
+		</form>
+		<p>*使用上の注意*</p>
+		<p>装備の種類は、現在攻撃方法が「対潜」及び「開幕航空攻撃」でしか反映されません。</p>
+		<p>水上偵察機を選択した場合、艦娘ステータスに装備の対潜値が加算されます。</p>
+		<p>計算式は「<a href="http://wikiwiki.jp/kancolle/">艦隊これくしょん -艦これ- 攻略 Wiki</a>」を参照しています。</p>
+		<p>この計算器の結果が正しいかは保証できません。</p>
+		<p>小数点以下が発生する計算では、その都度結果の小数点以下を切り捨てています。</p>
+		<p>夜戦特殊攻撃による補正は1回分しか適用されません。連撃などの複数回攻撃判定が発生するものについては、1回の攻撃判定分しか計算されません。</p>
+		<p>動作確認はSafari6.1.1でしか行っていません。</p>
+		<p>javascriptで作られています。</p>
+	</div>
+</body>
+</html>

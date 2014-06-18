@@ -1,0 +1,104 @@
+@charset "utf-8";
+
+h1 {
+	text-align: center;
+	font-size: 200%;
+}
+
+div {
+	/* border: solid 1px black; */
+}
+
+div p {
+	/* text-align: center; */
+	padding: 0.5rem 0 0 0;
+}
+
+div#battleField {
+	display: -webkit-box;
+	display: -moz-box;
+	display: box;
+	-webkit-box-pack: center;
+	-moz-box-pack: center;
+	box-pack: center;
+	padding: 0.5rem;
+	margin: 1rem 0 0 0;
+}
+
+div#box {
+	display: -moz-box;
+	display: -webkit-box;
+	display: box;
+	-webkit-box-pack: center;
+	-moz-box-pack: center;
+	box-pack: center;	
+}
+
+div#attacker {
+	border: solid black 1px;
+	padding: 0.5rem;
+}
+
+div#victim {
+	border: solid black 1px;
+	padding: 0.5rem;
+	margin: 0 1rem 0 1rem;
+}
+
+div#result {
+	border: solid black 1px;
+	padding: 0.5rem;
+}
+
+form {
+	/* background-color: #FAFAFB; */
+}
+
+input {
+	width: 3rem;
+	/* background-color: yellow; */
+}
+
+label {
+	/* background-color: red; */
+}
+
+select {
+	/* background-color: blue; */
+}
+
+table {
+	border: black solid 1px;
+}
+
+table th {
+	/* border: black solid 1px;
+	padding: 0 0.3rem 0 0.3rem; */
+	padding: 0.3rem;
+}
+
+table tr {
+	/* border: black solid 1px; */
+}
+
+table td {
+	/* border: black solid 1px; */
+	text-align: center;
+	padding: 0.3rem;
+}
+
+div#battleField table td:nth-child(odd) {
+	text-align: right;
+	padding: 0 0 0 0.8rem;
+}
+div#battleField table td:nth-child(even) {
+	text-align: left;
+}
+
+div#battleField table td label {
+	/* margin: 3rem 0 0.3rem 0; */
+}
+
+div#result table td.randamNumber {
+	text-align: left;
+}
