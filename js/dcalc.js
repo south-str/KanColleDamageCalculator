@@ -759,66 +759,6 @@ function getHTML(rDamage, rHp, aMethod){
    数値入力項目,セレクトボックス,出力項目の初期化を行う
 */
 function initialize(){
-	var eTimes = {
-		"et":document.dCalc.engagedTimes,
-		"nb":document.dCalc.nightBattleTimes};
-	var sStatus = {
-		"fp":document.dCalc.firepower,
-		"to":document.dCalc.topedo,
-		"as":document.dCalc.antiSubmarine};
-	var slot1 = {
-		"fp":document.dCalc.eFirepower0,
-		"to":document.dCalc.eTopedo0,
-		"as":document.dCalc.eAntiSubmarine0,
-		"bo":document.dCalc.eBomb0,
-		"mo":document.dCalc.eMounted0};
-	var slot2 = {
-		"fp":document.dCalc.eFirepower1,
-		"to":document.dCalc.eTopedo1,
-		"as":document.dCalc.eAntiSubmarine1,
-		"bo":document.dCalc.eBomb1,
-		"mo":document.dCalc.eMounted1};
-	var slot3 = {
-		"fp":document.dCalc.eFirepower2,
-		"to":document.dCalc.eTopedo2,
-		"as":document.dCalc.eAntiSubmarine2,
-		"bo":document.dCalc.eBomb2,
-		"mo":document.dCalc.eMounted2};
-	var slot4 = {
-		"fp":document.dCalc.eFirepower3,
-		"to":document.dCalc.eTopedo3,
-		"as":document.dCalc.eAntiSubmarine3,
-		"bo":document.dCalc.eBomb3,
-		"mo":document.dCalc.eMounted3};
-	var slot = {
-		"slot1":slot1,
-		"slot2":slot2,
-		"slot3":slot3,
-		"slot4":slot4};
-	var eStatus = {
-		"hp":document.dCalc.hp,
-		"ar":document.dCalc.armor};
-	var eSlot1 = {
-		"ar":document.dCalc.eArmor0};
-	var eSlot2 = {
-		"ar":document.dCalc.eArmor1};
-	var eSlot3 = {
-		"ar":document.dCalc.eArmor2};
-	var eSlot4 = {
-		"ar":document.dCalc.eArmor3};
-	var eSlot = {
-		"slot1":eSlot1,
-		"slot2":eSlot2,
-		"slot3":eSlot3,
-		"slot4":eSlot4};
-	var oStatus = {
-		"fp":document.dCalc.cFirepower,
-		"to":document.dCalc.cTopedo,
-		"as":document.dCalc.cAntiSubmarine,
-		"bo":document.dCalc.cBomb};
-	var oEStatus = {
-		"hp":document.dCalc.cHp,
-		"ar":document.dCalc.cArmor};
 	//(暫定)結果を初期化
 	var result = 
 	"<table>"
@@ -845,6 +785,8 @@ function initialize(){
 	+"</table>";
 	document.dCalc.calcResult.innerHTML = result;
 	//selectタグの初期化
+	//初期化用の関数を作って、そこに配列を投げ込む方が良い。
+	//冗長な処理を簡略化できる。
 	var formArray = new Array("単縦陣","複縦陣","輪形陣","梯形陣","単横陣");
 	var formation = document.dCalc.formation;
 	for (var i = 0; i < formArray.length; i++){
