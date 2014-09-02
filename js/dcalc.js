@@ -6,9 +6,12 @@ window.onload = function(){
 }
 
 /*
-   計算処理
-   選択された攻撃方法により、その後の処理を決定する
-*/
+ * 計算処理
+ * 選択された攻撃方法により、その後の処理を決定する
+ * 本来ならdamageCaluclate()がmain関数になるべき。
+ * 入力、処理、出力を分けなければならない。
+ * 入出力、処理でも可。
+ */
 function damageCaluclate(){
 	//必ず読み込む値 <- 本当に必要？ 呼び出した先の関数で読んでも良いのでは？
 	//oStatusに出力した値を基礎攻撃力を求める関数で参照しているため、
@@ -787,8 +790,11 @@ function initialize(){
 	+"</table>";
 	document.dCalc.calcResult.innerHTML = result;
 	//selectタグの初期化
-	//初期化用の関数を作って、そこに配列を投げ込む方が良い。
-	//冗長な処理を簡略化できる。
+	/*
+	 * セレクトボックス初期化用関数
+	 * @input arr Array
+	 * @input obj Object
+	 */
 	function initializeSelect(arr, obj){
 		for(var i = 0, arrLength = arr.length; i < arr.length; i++){
 			obj.length ++;
