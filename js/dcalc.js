@@ -11,6 +11,8 @@ window.onload = function(){
 */
 function damageCaluclate(){
 	//必ず読み込む値 <- 本当に必要？ 呼び出した先の関数で読んでも良いのでは？
+	//oStatusに出力した値を基礎攻撃力を求める関数で参照しているため、
+	//下のコードを消すと動かなくなる。設計の不具合。
 	var sStatus = getShipStatus();
 	var equip = getEquip();
 	var oStatus = getOutputStatus();
@@ -787,48 +789,31 @@ function initialize(){
 	//selectタグの初期化
 	//初期化用の関数を作って、そこに配列を投げ込む方が良い。
 	//冗長な処理を簡略化できる。
+	function initializeSelect(arr, obj){
+		for(var i = 0, arrLength = arr.length; i < arr.length; i++){
+			obj.length ++;
+			obj.options[i].value = i;
+			obj.options[i].text = arr[i];
+		}
+	}
 	var formArray = new Array("単縦陣","複縦陣","輪形陣","梯形陣","単横陣");
 	var formation = document.dCalc.formation;
-	for (var i = 0; i < formArray.length; i++){
-		formation.length ++;
-		formation.options[i].value = i;
-		formation.options[i].text = formArray[i];
-	}
 	var engaArray = new Array("同航戦","反航戦","T字戦(有利)","T字戦(不利)");
 	var engage = document.dCalc.engage;
-	for (var i = 0; i < engaArray.length; i++){
-		engage.length ++;
-		engage.options[i].value = i;
-		engage.options[i].text = engaArray[i];
-	}
-	var aDamArray = new Array("無傷〜小破","中破","大破");
+	var aDamArray = new Array("無傷 - 小破","中破","大破");
 	var aDamage = document.dCalc.attackerDamage;
-	for (var i = 0; i < aDamArray.length; i++){
-		aDamage.length ++;
-		aDamage.options[i].value = i;
-		aDamage.options[i].text = aDamArray[i];
-	}
 	var nAttArray = new Array("通常","連撃","カットイン(魚雷・魚雷)","カットイン(主砲・魚雷)","カットイン(主砲・主砲・主砲)","カットイン(主砲・主砲・副砲)");
 	var nAttack = document.dCalc.nightAttack;
-	for (var i = 0; i < nAttArray.length; i++){
-		nAttack.length ++;
-		nAttack.options[i].value = i;
-		nAttack.options[i].text = nAttArray[i];
-	}
 	var critArray = new Array("なし","あり");
 	var critical = document.dCalc.critical;
-	for (var i = 0; i < critArray.length; i++){
-		critical.length ++;
-		critical.options[i].value = i;
-		critical.options[i].text = critArray[i];
-	}
 	var methArray = new Array("砲撃(火砲)","砲撃(航空機)","雷撃","対潜(爆雷)","対潜(航空機)","開幕航空攻撃","夜戦");
 	var meth = document.dCalc.method;
-	for (var i = 0; i < methArray.length; i++){
-		meth.length ++;
-		meth.options[i].value = i;
-		meth.options[i].text = methArray[i];
-	}
+	initializeSelect(formArray, formation);
+	initializeSelect(engaArray, engage);
+	initializeSelect(aDamArray, aDamage);
+	initializeSelect(nAttArray, nAttack);
+	initializeSelect(critArray, critical);
+	initializeSelect(methArray, meth);
 	var typeArray = new Array("その他","水上偵察機","水上爆撃機","艦上爆撃機","艦上攻撃機");
 	var eType = {
 		"slot1":document.dCalc.eType0,
