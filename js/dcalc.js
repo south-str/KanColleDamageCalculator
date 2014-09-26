@@ -11,29 +11,24 @@ window.onload = function(){
  * 本来ならdamageCaluclate()がmain関数になるべき。
  * 入力、処理、出力を分けなければならない。
  * 入出力、処理でも可。
+ * この関数に限ったことではないが、全体的に副作用を目的としたコードが多すぎる。
+ * 副作用を極力減らすようにしなければならない。
  */
 function damageCaluclate(){
-	//必ず読み込む値 <- 本当に必要？ 呼び出した先の関数で読んでも良いのでは？
-	//oStatusに出力した値を基礎攻撃力を求める関数で参照しているため、
-	//下のコードを消すと動かなくなる。設計の不具合。
-	var sStatus = getShipStatus();
-	var equip = getEquip();
-	var oStatus = getOutputStatus();
-	var eStatus = getEnemyStatus();
-	var eEquip = getEnemyEquip();
+	var ship = getShip();
+	var enemy = getEnemy();
 	var oEStatus = getOutputEnemyStatus();
-	oStatus["fp"].value = parseInt(sStatus["fp"].value) + parseInt(equip["slot1"]["fp"].value) + parseInt(equip["slot2"]["fp"].value) + parseInt(equip["slot3"]["fp"].value) + parseInt(equip["slot4"]["fp"].value);
-	oStatus["to"].value = parseInt(sStatus["to"].value) + parseInt(equip["slot1"]["to"].value) + parseInt(equip["slot2"]["to"].value) + parseInt(equip["slot3"]["to"].value) + parseInt(equip["slot4"]["to"].value);
-	oStatus["as"].value = parseInt(sStatus["as"].value) + parseInt(equip["slot1"]["as"].value) + parseInt(equip["slot2"]["as"].value) + parseInt(equip["slot3"]["as"].value) + parseInt(equip["slot4"]["as"].value);
-	oStatus["bo"].value = parseInt(equip["slot1"]["bo"].value) + parseInt(equip["slot2"]["bo"].value) + parseInt(equip["slot3"]["bo"].value) + parseInt(equip["slot4"]["bo"].value);
-	oEStatus["hp"].value = parseInt(eStatus["hp"].value);
-	oEStatus["ar"].value = parseInt(eStatus["ar"].value) + parseInt(eEquip["slot1"]["ar"].value) + parseInt(eEquip["slot2"]["ar"].value) + parseInt(eEquip["slot3"]["ar"].value) + parseInt(eEquip["slot4"]["ar"].value);
+	//装備補正込み敵艦ステータスを計算している
+	//oEStatusを参照して計算している部分があるため、削除できない。
+	oEStatus["hp"].value = enemy.getHp();
+	oEStatus["ar"].value = enemy.getArmor() + enemy.sumEquipArmor();
 	//選択された攻撃方法により、呼び出す計算式を変更する。
-	var aMethod = document.dCalc.method.options[document.dCalc.method.selectedIndex].value;
+	var aMethod = parseInt(document.dCalc.method.selectedIndex);
 	//基本攻撃力
-	var bap = getBasicAttackPoint(aMethod);
+	var bap = getBasicAttackPoint(ship, aMethod);
 	//基本攻撃力を基にダメージを算出する
 	calcBombardedDamage(bap);
+	output(ship, enemy);
 }
 
 /*
@@ -81,134 +76,93 @@ function calcBombardedDamage(bap){
 /*
    基礎攻撃力を求める式を判断する
 */
-function getBasicAttackPoint(aMethod){
+function getBasicAttackPoint(ship, aMethod){
 	var bap = 0;
-	switch (parseInt(aMethod)) {
+	switch (aMethod) {
 		//砲撃(火砲)
 		case 0:
-			bap = calcBasicAttackFT();
+			bap = calcBasicAttackFT(ship);
 			break;
 		//砲撃(航空機)
 		case 1:
-			bap = calcBasicAttackFA();
+			bap = calcBasicAttackFA(ship);
 			break;
 		//雷撃
 		case 2:
-			bap = calcBasicAttackTO();
+			bap = calcBasicAttackTO(ship);
 			break;
 		//対潜(爆雷)
 		case 3:
-			bap = calcBasicAttackDC(aMethod);
+			bap = calcBasicAttackDC(ship, aMethod);
 			break;
 		//対潜(航空機)
 		case 4:
-			bap = calcBasicAttackDC(aMethod);
+			bap = calcBasicAttackDC(ship, aMethod);
 			break;
 		//開幕航空攻撃
 		case 5:
-			bap = calcBasicAttackAS();
+			bap = calcBasicAttackAS(ship);
 			break;
 		//夜戦
 		case 6:
-			bap = calcBasicAttackNB();
+			bap = calcBasicAttackNB(ship);
 			break;
 	}
 	return bap;
 }
 
 /*
-   艦娘ステータスを取得する
-*/
-function getShipStatus(){
-	var sStatus = {
-		"fp":document.dCalc.firepower,
-		"to":document.dCalc.topedo,
-		"as":document.dCalc.antiSubmarine};
-	return sStatus;
-}
-
-/*
-   艦娘出力ステータスを取得する
-*/
-function getOutputStatus(){
-	var oStatus = {
-		"fp":document.dCalc.cFirepower,
-		"to":document.dCalc.cTopedo,
-		"as":document.dCalc.cAntiSubmarine,
-		"bo":document.dCalc.cBomb};
+ * 入力関連
+ */
+function getShip(){
+	var ship = new window.ship();
+	var form = document.dCalc;
+	ship.setFirepower(form.firepower.value);
+	ship.setTopedo(form.topedo.value);
+	ship.setAntisub(form.antiSubmarine.value);
+	ship.equipments.slot1.equip.setFirepower(form.eFirepower0.value);
+	ship.equipments.slot1.equip.setTopedo(form.eTopedo0.value);
+	ship.equipments.slot1.equip.setAntisub(form.eAntiSubmarine0.value);
+	ship.equipments.slot1.equip.setBomb(form.eBomb0.value);
+	ship.setMount(form.eMounted0.value, 1);
+	ship.equipments.slot1.equip.setType(form.eType0.selectedIndex);
 	
-	return oStatus;
+	ship.equipments.slot2.equip.setFirepower(form.eFirepower1.value);
+	ship.equipments.slot2.equip.setTopedo(form.eTopedo1.value);
+	ship.equipments.slot2.equip.setAntisub(form.eAntiSubmarine1.value);
+	ship.equipments.slot2.equip.setBomb(form.eBomb1.value);
+	ship.setMount(form.eMounted1.value, 2);
+	ship.equipments.slot2.equip.setType(form.eType1.selectedIndex);
+
+	ship.equipments.slot3.equip.setFirepower(form.eFirepower2.value);
+	ship.equipments.slot3.equip.setTopedo(form.eTopedo2.value);
+	ship.equipments.slot3.equip.setAntisub(form.eAntiSubmarine2.value);
+	ship.equipments.slot3.equip.setBomb(form.eBomb2.value);
+	ship.setMount(form.eMounted2.value, 3);
+	ship.equipments.slot3.equip.setType(form.eType2.selectedIndex);
+
+	ship.equipments.slot4.equip.setFirepower(form.eFirepower3.value);
+	ship.equipments.slot4.equip.setTopedo(form.eTopedo3.value);
+	ship.equipments.slot4.equip.setAntisub(form.eAntiSubmarine3.value);
+	ship.equipments.slot4.equip.setBomb(form.eBomb3.value);
+	ship.setMount(form.eMounted3.value, 4);
+	ship.equipments.slot4.equip.setType(form.eType3.selectedIndex);
+	return ship;
 }
 
 /*
-   敵艦ステータスを取得する
-*/
-function getEnemyStatus(){
-	var eStatus = {
-		"hp":document.dCalc.hp,
-		"ar":document.dCalc.armor};
-	return eStatus;
-}
-
-/*
-   装備補正を取得する
-*/
-function getEquip(){
-	var slot1 = {
-		"fp":document.dCalc.eFirepower0,
-		"to":document.dCalc.eTopedo0,
-		"as":document.dCalc.eAntiSubmarine0,
-		"bo":document.dCalc.eBomb0,
-		"mo":document.dCalc.eMounted0,
-		"ty":document.dCalc.eType0.options[document.dCalc.eType0.selectedIndex]};
-	var slot2 = {
-		"fp":document.dCalc.eFirepower1,
-		"to":document.dCalc.eTopedo1,
-		"as":document.dCalc.eAntiSubmarine1,
-		"bo":document.dCalc.eBomb1,
-		"mo":document.dCalc.eMounted1,
-		"ty":document.dCalc.eType1.options[document.dCalc.eType1.selectedIndex]};
-	var slot3 = {
-		"fp":document.dCalc.eFirepower2,
-		"to":document.dCalc.eTopedo2,
-		"as":document.dCalc.eAntiSubmarine2,
-		"bo":document.dCalc.eBomb2,
-		"mo":document.dCalc.eMounted2,
-		"ty":document.dCalc.eType2.options[document.dCalc.eType2.selectedIndex]};
-	var slot4 = {
-		"fp":document.dCalc.eFirepower3,
-		"to":document.dCalc.eTopedo3,
-		"as":document.dCalc.eAntiSubmarine3,
-		"bo":document.dCalc.eBomb3,
-		"mo":document.dCalc.eMounted3,
-		"ty":document.dCalc.eType3.options[document.dCalc.eType3.selectedIndex]};
-	var equip = {
-		"slot1":slot1,
-		"slot2":slot2,
-		"slot3":slot3,
-		"slot4":slot4};
-	
-	return equip;
-}
-
-/*
-   敵装備ステータスを取得する
-*/
-function getEnemyEquip(){
-	var eSlot1 = {
-		"ar":document.dCalc.eArmor0};
-	var eSlot2 = {
-		"ar":document.dCalc.eArmor1};
-	var eSlot3 = {
-		"ar":document.dCalc.eArmor2};
-	var eSlot4 = {
-		"ar":document.dCalc.eArmor3};
-	var eEquip = {
-		"slot1":eSlot1,
-		"slot2":eSlot2,
-		"slot3":eSlot3,
-		"slot4":eSlot4};
-	return eEquip;
+ * 敵情報入力
+ */
+function getEnemy(){
+	var enemy = new window.ship();
+	var form = document.dCalc;
+	enemy.setHp(form.hp.value);
+	enemy.setArmor(form.armor.value);
+	enemy.equipments.slot1.equip.setArmor(form.eArmor0.value);
+	enemy.equipments.slot2.equip.setArmor(form.eArmor1.value);
+	enemy.equipments.slot3.equip.setArmor(form.eArmor2.value);
+	enemy.equipments.slot4.equip.setArmor(form.eArmor3.value);
+	return enemy;
 }
 
 /*
@@ -224,83 +178,64 @@ function getOutputEnemyStatus(){
 /*
    基本攻撃力[砲撃(火砲)]を求める
 */
-function calcBasicAttackFT(){
-	var ft = document.dCalc.cFirepower.value;
-	var bap = parseInt(ft) + 5;
-	return bap;
+function calcBasicAttackFT(ship){
+	var shipFp = ship.getFirepower();
+	var equipFp = ship.sumEquipFirepower();
+	var constFp = 5;
+	return shipFp + equipFp + constFp;
 }
 
 /*
    基本攻撃力[雷撃]を求める
 */
-function calcBasicAttackTO(){
-	var to = document.dCalc.cTopedo.value;
-	var bap = parseInt(to) + 5;
-	return bap;
+function calcBasicAttackTO(ship){
+	var shipTo = ship.getTopedo();
+	var equipTo = ship.sumEquipTopedo();
+	var constTo = 5;
+	return shipTo + equipTo + constTo;
 }
 
 /*
    基本攻撃力[砲撃(航空機)]を求める
 */
-function calcBasicAttackFA(){
-	var fp = document.dCalc.cFirepower.value;
-	var to = document.dCalc.cTopedo.value;
-	var bo = document.dCalc.cBomb.value;
-	var bap = Math.floor((parseInt(fp) + parseInt(to)) * 1.5) + parseInt(bo) * 2 + 55;
-	return bap;
+function calcBasicAttackFA(ship){
+	var fp = ship.getFirepower() + ship.sumEquipFirepower();
+	var to = ship.getTopedo() + ship.sumEquipTopedo();
+	var bo = ship.sumEquipBomb();
+	return Math.floor((fp + to) * 1.5) + bo * 2 + 55;
 }
 
 /*
    基本攻撃力[対潜(爆雷),対潜(航空機)]を求める
 */
-function calcBasicAttackDC(aMethod){
+function calcBasicAttackDC(ship, aMethod){
 	var seaplane = 1; //水上偵察機
-	var sas = parseInt(document.dCalc.antiSubmarine.value);
-	var equip = {"slot1":{"as":document.dCalc.eAntiSubmarine0.value,
-						  "ty":document.dCalc.eType0.options[document.dCalc.eType0.selectedIndex]},
-				 "slot2":{"as":document.dCalc.eAntiSubmarine1.value,
-						  "ty":document.dCalc.eType1.options[document.dCalc.eType1.selectedIndex]},
-				 "slot3":{"as":document.dCalc.eAntiSubmarine2.value,
-						  "ty":document.dCalc.eType2.options[document.dCalc.eType2.selectedIndex]},
-				 "slot4":{"as":document.dCalc.eAntiSubmarine3.value,
-						  "ty":document.dCalc.eType3.options[document.dCalc.eType3.selectedIndex]},
-				};
-	var sumeas = 0;
-	//装備が水偵なら装備補正をステータスに加える
-	for (var key in equip){
-		if (equip[key]["ty"].value == seaplane){
-			sas = sas + parseInt(equip[key]["as"]);
-		}else{
-			sumeas = sumeas + parseInt(equip[key]["as"]);
-		}
-	}
-	if (aMethod == 3){
-		var fval = 25;
-	}else{
-		var fval = 10;
-	}
-	var bap = Math.floor(sas / 5) + parseInt(sumeas * 2) + parseInt(fval);
-	return bap;
+	var sas = ship.getAntisub();
+	var sumNotSurve = ship.sumNotSurveAntisub();
+	var sumSurve = ship.sumSurveAntisub();
+	var fval = (aMethod == 3) ? 25 : 10;
+	return Math.floor((sas + sumSurve) / 5) + sumNotSurve * 2 + fval;
 }
 
 /*
    基本攻撃力[開幕航空攻撃]を求める
 */
-function calcBasicAttackAS(){
-	var equip = getEquip();
+function calcBasicAttackAS(ship){
+	var slots = 4;
+	var constMax = 1.5;
+	var constMin = 0.8;
+	var constBomb = 25;
 	var bap = new Array(0);
-	for (var key in equip){
+	for (var i = 1; i <= slots; i++){
 		//装備種別が艦攻なら
 		var result = {"max":"",
 					  "min":""};
-		if(equip[key]["ty"].value == 4){
-			result["max"] = Math.floor(1.5 * parseInt(equip[key]["to"].value) * Math.floor(Math.sqrt(parseInt(equip[key]["mo"].value))) + 25);
-			result["min"] = Math.floor(0.8 * parseInt(equip[key]["to"].value) * Math.floor(Math.sqrt(parseInt(equip[key]["mo"].value))) + 25);
-		//装備種別が水上爆撃機か艦爆なら
-		}else if(equip[key]["ty"].value == 2 || equip[key]["ty"].value == 3){
-		var result = {"max":"",
-					  "min":""};
-			result["max"] = 1 * parseInt(parseInt(equip[key]["bo"].value) * Math.floor(Math.sqrt(parseInt(equip[key]["mo"].value))) + 25);
+		if(ship.getEquip(i).getType() == 4){
+			result["max"] = Math.floor(constMax * ship.getEquip(i).getTopedo() * Math.floor(Math.sqrt(ship.getMount(i))) + constBomb);
+			result["min"] = Math.floor(constMin * ship.getEquip(i).getTopedo() * Math.floor(Math.sqrt(ship.getMount(i))) + constBomb);
+			//装備種別が水上爆撃機か艦爆なら
+		}else if(ship.getEquip(i).getType() == 2 || ship.getEquip(i).getType() == 3){
+			result["max"] = ship.getEquip(i).getBomb() * Math.floor(Math.sqrt(ship.getMount(i))) + constBomb;
 			result["min"] = "";
 		}else{
 		var result = {"max":"",
@@ -316,11 +251,12 @@ function calcBasicAttackAS(){
 /*
    基本攻撃力[夜戦]を求める
 */
-function calcBasicAttackNB(fp, to){
-	var fp = document.dCalc.cFirepower.value;
-	var to = document.dCalc.cTopedo.value;
-	var bap = parseInt(fp) + parseInt(to);
-	return bap;
+function calcBasicAttackNB(ship){
+	var shipFp = ship.getFirepower();
+	var shipTo = ship.getTopedo();
+	var equipFp = ship.sumEquipFirepower();
+	var equipTo = ship.sumEquipTopedo();
+	return shipFp + shipTo + equipFp + equipTo;
 }
 
 /*
@@ -759,6 +695,28 @@ function getHTML(rDamage, rHp, aMethod){
 	}
 	return result;
 }
+
+/*
+ * output
+ */
+function output(ship, enemy){
+	var sFirepower = document.dCalc.cFirepower;
+	var sTopedo = document.dCalc.cTopedo;
+	var sAntisub = document.dCalc.cAntiSubmarine;
+	var sBomb = document.dCalc.cBomb;
+
+	var eHp = document.dCalc.cHp;
+	var eArmor = document.dCalc.cArmor;
+
+	sFirepower.value = ship.getFirepower() + ship.sumEquipFirepower();
+	sTopedo.value = ship.getTopedo() + ship.sumEquipTopedo();
+	sAntisub.value = ship.getAntisub() + ship.sumEquipAntisubmarine();
+	sBomb.value = ship.sumEquipBomb();
+
+	eHp.value = enemy.getHp();
+	eArmor = enemy.getArmor() + enemy.sumEquipArmor();
+}
+
 /*
    画面の初期化処理
    数値入力項目,セレクトボックス,出力項目の初期化を行う
