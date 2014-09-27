@@ -18,23 +18,19 @@ function damageCaluclate(){
 	var ship = getShip();
 	var enemy = getEnemy();
 	var oEStatus = getOutputEnemyStatus();
-	//装備補正込み敵艦ステータスを計算している
-	//oEStatusを参照して計算している部分があるため、削除できない。
-	oEStatus["hp"].value = enemy.getHp();
-	oEStatus["ar"].value = enemy.getArmor() + enemy.sumEquipArmor();
 	//選択された攻撃方法により、呼び出す計算式を変更する。
 	var aMethod = parseInt(document.dCalc.method.selectedIndex);
 	//基本攻撃力
 	var bap = getBasicAttackPoint(ship, aMethod);
 	//基本攻撃力を基にダメージを算出する
-	calcBombardedDamage(bap);
+	calcBombardedDamage(bap, enemy);
 	output(ship, enemy);
 }
 
 /*
    砲撃戦のダメージを算出する(航空戦は全く別の関数にする？ 今は同じ関数内に書いてるけど)
 */
-function calcBombardedDamage(bap){
+function calcBombardedDamage(bap, enemy){
 	var formation = document.dCalc.formation.selectedIndex;
 	var engage = document.dCalc.engage.selectedIndex;
 	var aDamage = document.dCalc.attackerDamage.selectedIndex;
@@ -65,9 +61,9 @@ function calcBombardedDamage(bap){
 	//クリティカル補正
 	bdpb = getCriticalDamage(bdpb, aMethod, criticalCorrection);
 	//最終ダメージ算出
-	var rDamage = getDamage(bdpb, aMethod, ammunitionRemainingCorrection);
+	var rDamage = getDamage(bdpb, aMethod, ammunitionRemainingCorrection, enemy);
 	//残耐久算出
-	var rHp = getRemainingHp(rDamage, aMethod);
+	var rHp = getRemainingHp(rDamage, aMethod, enemy);
 	//出力
 	var result = getHTML(rDamage, rHp, aMethod);
 	document.dCalc.calcResult.innerHTML = result;
@@ -508,8 +504,8 @@ function getCriticalDamage(bdpb, aMethod, criticalCorrection){
 /*
    最終ダメージを求める
 */
-function getDamage(bdpb, aMethod, ammunitionRemainingCorrection){
-	var armor = document.dCalc.cArmor.value;
+function getDamage(bdpb, aMethod, ammunitionRemainingCorrection, enemy){
+	var armor = enemy.getArmor() + enemy.sumEquipArmor();
 	if (parseInt(aMethod) != 5){
 		var rDamage = {"min":"",
 					   "nor":"",
@@ -567,8 +563,8 @@ function getDamage(bdpb, aMethod, ammunitionRemainingCorrection){
 /*
    残耐久を求める
 */
-function getRemainingHp(rDamage, aMethod){
-var hp = document.dCalc.cHp.value;
+function getRemainingHp(rDamage, aMethod, enemy){
+var hp = enemy.getHp();
 	if (parseInt(aMethod) != 5){
 		var rHp = {
 			"min":"",
