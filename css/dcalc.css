@@ -99,6 +99,14 @@ div#battleField table td label {
 	/* margin: 3rem 0 0.3rem 0; */
 }
 
+div#result table {
+	width: 357px;
+}
+
+div#result table tr:nth-child(even) {
+	background-color: #F0F0F0;
+}
+
 div#result table td.randamNumber {
 	text-align: left;
 }

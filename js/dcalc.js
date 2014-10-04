@@ -1,6 +1,6 @@
 /*
-   画面ロード完了直後の処理
-*/
+ * 画面ロード完了直後の処理
+ */
 window.onload = function(){
 	initialize();
 }
@@ -17,61 +17,53 @@ window.onload = function(){
 function damageCaluclate(){
 	var ship = getShip();
 	var enemy = getEnemy();
-	var oEStatus = getOutputEnemyStatus();
-	//選択された攻撃方法により、呼び出す計算式を変更する。
-	var aMethod = parseInt(document.dCalc.method.selectedIndex);
+	var bf = getBattleField();
 	//基本攻撃力
-	var bap = getBasicAttackPoint(ship, aMethod);
+	var bap = getBasicAttackPoint(ship, bf.aMethod);
 	//基本攻撃力を基にダメージを算出する
-	calcBombardedDamage(bap, enemy);
-	output(ship, enemy);
+	var result = calcBombardedDamage(bap, enemy, bf);
+	output(ship, enemy, result);
 }
 
 /*
-   砲撃戦のダメージを算出する(航空戦は全く別の関数にする？ 今は同じ関数内に書いてるけど)
-*/
-function calcBombardedDamage(bap, enemy){
-	var formation = document.dCalc.formation.selectedIndex;
-	var engage = document.dCalc.engage.selectedIndex;
-	var aDamage = document.dCalc.attackerDamage.selectedIndex;
-	var nightAttack = document.dCalc.nightAttack.selectedIndex;
-	var critical = document.dCalc.critical.selectedIndex;
-	var ammunitionRemaining = 10 - (parseInt(document.dCalc.engagedTimes.value) * 2 + parseInt(document.dCalc.nightBattleTimes.value));
-	var aMethod = document.dCalc.method.selectedIndex;
+ * 砲撃戦のダメージを算出する(航空戦は全く別の関数にする？ 今は同じ関数内に書いてるけど)
+ */
+function calcBombardedDamage(bap, enemy, bf){
+	var ammunitionRemaining = 10 - (bf.engagedTimes * 2 + bf.nightBattleTimes);
 	//攻撃方法より陣形補正を求める(対潜と航空攻撃/夜戦とそれ以外)
-	var formaCorrection = getFormation(formation, aMethod);
+	var formaCorrection = getFormation(bf.formation, bf.aMethod);
 	//交戦形態の補正を求める
-	var engageCorrection = getEngage(engage, aMethod);
+	var engageCorrection = getEngage(bf.engage, bf.aMethod);
 	//攻撃者の損傷状態補正を求める
-	var aDamageCorrection = getAttackerDamage(aDamage, aMethod);
+	var aDamageCorrection = getAttackerDamage(bf.aDamage, bf.aMethod);
 	//夜戦特殊攻撃補正を求める
-	var nightAttackCorrection = getNightAttack(nightAttack, aMethod);
+	var nightAttackCorrection = getNightAttack(bf.nightAttack, bf.aMethod);
 	//クリティカル補正を求める
-	var criticalCorrection = getCritical(critical);
+	var criticalCorrection = getCritical(bf.critical);
 	//残弾補正を求める
 	var ammunitionRemainingCorrection = getAmmunitionRemaining(ammunitionRemaining);
 	//キャップ前攻撃力を算出する
-	var bdpb = getBeforeCap(bap, aMethod, formaCorrection, engageCorrection, aDamageCorrection, nightAttackCorrection);
+	var bdpb = getBeforeCap(bap, bf.aMethod, formaCorrection, engageCorrection, aDamageCorrection, nightAttackCorrection);
 	//キャップ後攻撃力を算出する
-	if (parseInt(aMethod) != 5){
-		bdpb = getAfterCap(bdpb, aMethod);
+	if (bf.aMethod != 5){
+		bdpb = getAfterCap(bdpb, bf.aMethod);
 	}else{
-		bdpb = getAfterCap(bap, aMethod);
+		bdpb = getAfterCap(bap, bf.aMethod);
 	}
 	//クリティカル補正
-	bdpb = getCriticalDamage(bdpb, aMethod, criticalCorrection);
+	bdpb = getCriticalDamage(bdpb, bf.aMethod, criticalCorrection);
 	//最終ダメージ算出
-	var rDamage = getDamage(bdpb, aMethod, ammunitionRemainingCorrection, enemy);
+	var rDamage = getDamage(bdpb, bf.aMethod, ammunitionRemainingCorrection, enemy);
 	//残耐久算出
-	var rHp = getRemainingHp(rDamage, aMethod, enemy);
-	//出力
-	var result = getHTML(rDamage, rHp, aMethod);
-	document.dCalc.calcResult.innerHTML = result;
+	var rHp = getRemainingHp(rDamage, bf.aMethod, enemy);
+	//出力するHTMLを取得
+	var result = getHTML(rDamage, rHp, bf.aMethod);
+	return result;
 }
 
 /*
-   基礎攻撃力を求める式を判断する
-*/
+ * 基礎攻撃力を求める式を判断する
+ */
 function getBasicAttackPoint(ship, aMethod){
 	var bap = 0;
 	switch (aMethod) {
@@ -162,13 +154,20 @@ function getEnemy(){
 }
 
 /*
-   敵艦出力ステータス
-*/
-function getOutputEnemyStatus(){
-	var oEStatus = {
-		"hp":document.dCalc.cHp,
-		"ar":document.dCalc.cArmor};
-	return oEStatus;
+ * 環境変数入力
+ */
+function getBattleField(){
+	var bf = {
+		"formation":parseInt(document.dCalc.formation.selectedIndex),
+		"engage":parseInt(document.dCalc.engage.selectedIndex),
+		"aDamage":parseInt(document.dCalc.attackerDamage.selectedIndex),
+		"nightAttack":parseInt(document.dCalc.nightAttack.selectedIndex),
+		"critical":parseInt(document.dCalc.critical.selectedIndex),
+		"engagedTimes":parseInt(document.dCalc.engagedTimes.value),
+		"nightBattleTimes":parseInt(document.dCalc.engagedTimes.value),
+		"aMethod":parseInt(document.dCalc.method.selectedIndex)
+	};
+	return bf;
 }
 
 /*
@@ -514,7 +513,7 @@ function getDamage(bdpb, aMethod, ammunitionRemainingCorrection, enemy){
 		rDamage["nor"] = Math.floor((bdpb - Math.floor(armor * 1)) * ammunitionRemainingCorrection);
 		rDamage["max"] = Math.floor((bdpb - Math.floor(armor * 4 / 3)) * ammunitionRemainingCorrection);
 		for (var key in rDamage){
-			if(parseInt(rDamage[key]) < 0){
+			if(rDamage[key] < 0){
 				rDamage[key] = 0;
 			}
 		}
@@ -695,7 +694,7 @@ function getHTML(rDamage, rHp, aMethod){
 /*
  * output
  */
-function output(ship, enemy){
+function output(ship, enemy, result){
 	var sFirepower = document.dCalc.cFirepower;
 	var sTopedo = document.dCalc.cTopedo;
 	var sAntisub = document.dCalc.cAntiSubmarine;
@@ -704,13 +703,16 @@ function output(ship, enemy){
 	var eHp = document.dCalc.cHp;
 	var eArmor = document.dCalc.cArmor;
 
+	var outResult = document.dCalc.calcResult;
+
 	sFirepower.value = ship.getFirepower() + ship.sumEquipFirepower();
 	sTopedo.value = ship.getTopedo() + ship.sumEquipTopedo();
 	sAntisub.value = ship.getAntisub() + ship.sumEquipAntisubmarine();
 	sBomb.value = ship.sumEquipBomb();
 
 	eHp.value = enemy.getHp();
-	eArmor = enemy.getArmor() + enemy.sumEquipArmor();
+	eArmor.value = enemy.getArmor() + enemy.sumEquipArmor();
+	outResult.innerHTML = result;
 }
 
 /*
